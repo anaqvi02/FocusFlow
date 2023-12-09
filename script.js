@@ -1,38 +1,101 @@
-let button = document.querySelector('#Start_Button');
+
+const startButton = document.getElementById('Start_Button');
+
+
+const pomodoroCount = document.getElementById('pomodoroCount');
+
+const stopButton = document.getElementById('Stop_Button');
+
+
+let duration = 5;
 let intervalId = null;
-let startTime = null;
-let timerDuration = 20 * 60; // 20 minutes in seconds
+let pomodoros = 0;
+let isbreaktime = false;
+let breaktimeset = false
 
-// Function to update button text to show remaining time
-function updateButtonText() {
-    let now = new Date();
-    let elapsedTime = Math.floor((now - startTime) / 1000); // in seconds
-    let remainingTime = timerDuration - elapsedTime;
+startButton.addEventListener('click', function() {
+    chrome.storage.local.set({ isRunning: true, duration: duration, pomodoros: pomodoros, isbreaktime:isbreaktime});
 
-    if (remainingTime <= 0) {
-        // Time's up
+    if (intervalId) {
         clearInterval(intervalId);
-        button.textContent = 'Start!';
-    } else {
-        button.textContent = `Remaining time: ${remainingTime} seconds`;
     }
+
+    intervalId = setInterval(startTimer, 1000);
+});
+
+
+stopButton.addEventListener('click', function() {
+    chrome.storage.local.set({ isRunning: false, duration: duration, pomodoros: pomodoros, isbreaktime:isbreaktime});
+
+    if (intervalId) {
+        clearInterval(intervalId);
+    }
+});
+
+
+
+function startTimer() {
+    chrome.storage.local.get(['isRunning', 'duration', 'pomodoros'], function(result) {
+        if (result.isRunning) {
+            if (isbreaktime) {
+                clearInterval(intervalId);
+                intervalId = setInterval(startTimer, 1000);
+                result.pomodoros++;
+                chrome.storage.local.set({ pomodoros: result.pomodoros });
+
+                pomodoroCount.textContent = 'Pomodoros: ' + result.pomodoros;
+                if (breaktimeset == false) {
+                if (result.pomodoros % 4 === 0) {
+                    breaktimeset = true;
+                    result.duration = 5;
+                } else {
+                    breaktimeset = true;
+                    result.duration = 5;
+
+                }}
+
+                chrome.storage.local.set({duration: result.duration});
+
+
+                minutes = Math.floor(result.duration / 60);
+                seconds = result.duration % 60;
+
+                startButton.textContent = 'Break Time left: ' + minutes + ':' + (seconds < 10 ? '0' : '') + seconds;
+                result.duration--;
+                if(minutes <= 0 && seconds <= 0){
+                    isbreaktime=false;
+                    result.duration = 10
+                }
+                chrome.storage.local.set({ duration: result.duration,isbreaktime:isbreaktime});
+                
+            } 
+            
+            if(isbreaktime===false) {
+
+                minutes = Math.floor(result.duration / 60);
+                seconds = result.duration % 60;
+
+                startButton.textContent = 'Time left: ' + minutes + ':' + (seconds < 10 ? '0' : '') + seconds;
+                result.duration--;
+                if(minutes <= 0 && seconds <= 0){
+                    isbreaktime=true;
+                }
+                chrome.storage.local.set({ duration: result.duration,isbreaktime:isbreaktime});
+            }
+
+         }
+    });
 }
 
-button.addEventListener('click', function () {
-    // Check if a timer is already running
-    chrome.storage.local.get(['startTime', 'intervalId'], function(result) {
-        if (result.startTime && result.intervalId) {
-            // Timer is already running, continue the timer
-            startTime = new Date(result.startTime);
-            intervalId = result.intervalId;
-            updateButtonText();
-        } else {
-            // Start the timer
-            startTime = new Date();
-            intervalId = setInterval(updateButtonText, 1000); // Update every second
+chrome.storage.local.get(['isRunning', 'duration', 'pomodoros'], function(result) {
+    if (result.isRunning) {
+        duration = result.duration;
+        pomodoros = result.pomodoros;
 
-            // Store the start time and interval ID
-            chrome.storage.local.set({ 'startTime': startTime, 'intervalId': intervalId });
+        if (intervalId) {
+            clearInterval(intervalId);
         }
-    });
+
+        intervalId = setInterval(startTimer, 1000);
+    }
 });

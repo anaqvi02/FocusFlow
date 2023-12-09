@@ -4,6 +4,7 @@
     "description":"A program that helps you stay focused VIA the Pomodoro Technique",
     "manifest_version":3,
     "author":"Vinayak Kapoor and Ali Naqvi",
+    "permissions": ["storage"],
     "action":{
         "default_popup":"index.html",
         "default_width": 400,
@@ -12,4 +13,5 @@
         "script": ["script.js"],
         "persistent": true
       }
+    
 }
