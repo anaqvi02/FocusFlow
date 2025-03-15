@@ -17,7 +17,7 @@ gh repo clone anaqvi02/FocusFlow
 ## Showcase:
 <img width="195" alt="Screenshot 2025-03-15 at 4 42 16 PM" src="https://github.com/user-attachments/assets/5123842a-8e67-449d-ae86-62ceb0506d15" />
 
-##Contributors:
+## Contributors:
 
 Ali Naqvi
 Viniyak Kapoor
